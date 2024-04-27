@@ -260,7 +260,7 @@ namespace PleaseShareYouCode
             bIsMouseDown = false;
             bIsDragAndDrop = false;
         }
-
+        
         private void CbFileList_MouseMove(object sender, MouseEventArgs e)
         {
             if (CbFileList.SelectedItem == null)
