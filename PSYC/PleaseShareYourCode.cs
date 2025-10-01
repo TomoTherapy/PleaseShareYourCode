@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
+using PleaseShareYourCode.PSYC;
 
 namespace PleaseShareYouCode
 {
@@ -21,6 +22,11 @@ namespace PleaseShareYouCode
         private bool bIsMouseDown = false;
         private bool bIsDragAndDrop = false;
         private List<FileInfo> files;
+
+        // TomoTherapy added
+        private CombinedResultForm mCombineResultForm;
+        static private Settings mSettings;
+        static private HelpForm mHelpForm;
 
         enum eLanguage
         {
@@ -47,19 +53,19 @@ namespace PleaseShareYouCode
             switch (languageSetting)
             {
                 case "cs":
-                    r_btnCS.Checked = true;
+                    r_BtnCS.Checked = true;
                     break;
                 case "java":
-                   r_btnJAVA.Checked = true;
+                   r_BtnJAVA.Checked = true;
                     break;
                 case "c":
-                    r_btnC.Checked = true;
+                    r_BtnC.Checked = true;
                     break;
                 case "cpp":
-                    r_btnCPP.Checked = true;
+                    r_BtnCPP.Checked = true;
                     break;
                 case "asm":
-                    r_btnAsm.Checked = true;
+                    r_BtnASM.Checked = true;
                     break;
                 default:
                     Debug.Assert(false, "Unknown language");
@@ -69,12 +75,13 @@ namespace PleaseShareYouCode
 
         private void BtnOpen_Click(object sender, EventArgs e)
         {
-            folderBrowserDialog1.ShowDialog();
-
-            if (folderBrowserDialog1.SelectedPath == "")
+            folderBrowserDialog1 = new FolderBrowserDialog()
             {
-                return;
-            }
+                SelectedPath = mSettings.LastFolderPath
+            };
+
+            if (folderBrowserDialog1.ShowDialog() != DialogResult.OK) return;
+            if (folderBrowserDialog1.SelectedPath == "") return;
 
             directoryPath = folderBrowserDialog1.SelectedPath;
             labelProject.Text = "";
@@ -82,7 +89,7 @@ namespace PleaseShareYouCode
             files.Clear();
             List<string> filePaths;
 
-            if (r_btnCS.Checked)
+            if (r_BtnCS.Checked)
             {
                 filePaths = Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => !s.EndsWith("Program.cs") 
@@ -91,7 +98,7 @@ namespace PleaseShareYouCode
                         && s.EndsWith(".cs"))
                     .ToList();
             }
-            else if (r_btnJAVA.Checked)
+            else if (r_BtnJAVA.Checked)
             {
                 filePaths = Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => !s.EndsWith("Program.java") 
@@ -102,13 +109,13 @@ namespace PleaseShareYouCode
                         && s.EndsWith(".java")) 
                     .ToList();
             }
-            else if (r_btnC.Checked)
+            else if (r_BtnC.Checked)
             {
                 filePaths = Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => s.EndsWith(".h") || s.EndsWith(".c") && !s.EndsWith("main.c")).ToList();
                 reorderHeader(filePaths);
             }
-            else if (r_btnCPP.Checked)
+            else if (r_BtnCPP.Checked)
             {
                 filePaths = Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => s.EndsWith(".h") || s.EndsWith(".cpp") && !s.EndsWith("main.cpp")).ToList();
@@ -132,8 +139,8 @@ namespace PleaseShareYouCode
 
             labelProject.Text = directoryPath.Split('\\').Last();
             CbFileList.Items.Clear();
-            BtnExport.Enabled = true;
-            folderBrowserDialog1.SelectedPath = "";
+            //BtnExport.Enabled = true;
+            //folderBrowserDialog1.SelectedPath = "";
 
             foreach (string path in filePaths)
             {
@@ -159,6 +166,10 @@ namespace PleaseShareYouCode
 
                 CbFileList.Items.Add(fileName, true);
             }
+
+
+            mSettings.LastFolderPath = folderBrowserDialog1.SelectedPath;
+            mSettings.SerializeSettings();
         }
 
         private void BtnExport_Click(object sender, EventArgs e)
@@ -184,7 +195,10 @@ namespace PleaseShareYouCode
 
             const string DIVIDING_LINE = "----------------------";
             StreamWriter writer = new StreamWriter(File.Open(saveFileDialog1.FileName, FileMode.Create));
-            string commentStartStr = r_btnAsm.Checked ? ";" : "//";
+            string commentStartStr = r_BtnASM.Checked ? ";" : "//";
+
+            // TomoTherapy added
+            StringBuilder combinedCode = new StringBuilder(16384);
 
             for (int i = 0; i < CbFileList.Items.Count; ++i)
             {
@@ -202,16 +216,21 @@ namespace PleaseShareYouCode
                     {
                         using (StreamReader reader = new StreamReader(File.Open(sbFilePath.ToString(), FileMode.Open)))
                         {
-                            writer.WriteLine(sbComment.ToString());
-                            writer.WriteLine();
+                            //writer.WriteLine(sbComment.ToString());
+                            //writer.WriteLine();
+                            combinedCode.AppendLine(sbComment.ToString());
+                            combinedCode.AppendLine();
 
                             while (!reader.EndOfStream)
                             {
-                                writer.WriteLine(reader.ReadLine());
+                                //writer.WriteLine(reader.ReadLine());
+                                combinedCode.AppendLine(reader.ReadLine());
                             }
 
-                            writer.WriteLine();
-                            writer.WriteLine();
+                            //writer.WriteLine();
+                            //writer.WriteLine();
+                            combinedCode.AppendLine();
+                            combinedCode.AppendLine();
                         }
                     }
                     catch (FileNotFoundException)
@@ -246,8 +265,12 @@ namespace PleaseShareYouCode
                 Process.Start(saveFileDialog1.FileName);
             }
 
-            CbFileList.Items.Clear();
-            labelProject.Text = "";
+            //CbFileList.Items.Clear();
+            //labelProject.Text = "";
+
+            // TomoTherapy added
+            mCombineResultForm = new CombinedResultForm(combinedCode.ToString(), labelProject.Text);
+            mCombineResultForm.ShowDialog();
         }
 
         private void CbFileList_MouseDown(object sender, MouseEventArgs e)
@@ -309,6 +332,7 @@ namespace PleaseShareYouCode
             e.Effect = DragDropEffects.Move;
         }
 
+        /*
         private void SetDefaultLanguageCS_Click(object sender, EventArgs e)
         {
             r_btnCS.Checked = true;
@@ -376,6 +400,34 @@ namespace PleaseShareYouCode
                 writer.WriteLine(defaultLanguage);
             }
         }
+        */
+
+        // TomoTherapy added
+        private void r_BtnLanguage_CheckedChanged(object sender, EventArgs e)
+        {
+            if (r_BtnC.Checked)
+            {
+                mSettings.Language = ELanguage.C;
+            }
+            else if (r_BtnCPP.Checked)
+            {
+                mSettings.Language = ELanguage.CPP;
+            }
+            else if (r_BtnCS.Checked)
+            {
+                mSettings.Language = ELanguage.CS;
+            }
+            else if (r_BtnJAVA.Checked)
+            {
+                mSettings.Language = ELanguage.JAVA;
+            }
+            else if (r_BtnASM.Checked)
+            {
+                mSettings.Language = ELanguage.ASM;
+            }
+
+            mSettings.SerializeSettings();
+        }
 
         private void reorderHeader(List<string> filePaths)
         {
@@ -413,6 +465,16 @@ namespace PleaseShareYouCode
                     ++i;
                 }
             }
+        }
+
+        private void BtnHelp_Click(object sender, EventArgs e)
+        {
+            if (mHelpForm == null)
+            {
+                mHelpForm = new HelpForm();
+            }
+
+            mHelpForm.Show(this);
         }
     }
 }

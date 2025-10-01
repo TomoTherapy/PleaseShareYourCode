@@ -79,6 +79,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PSYC\AutoCloseMessageBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PSYC\AutoCloseMessageBox.Designer.cs">
+      <DependentUpon>AutoCloseMessageBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PSYC\CombinedResultForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PSYC\CombinedResultForm.Designer.cs">
+      <DependentUpon>CombinedResultForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PSYC\FileSaver.cs" />
+    <Compile Include="PSYC\HelpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PSYC\HelpForm.Designer.cs">
+      <DependentUpon>HelpForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PSYC\JsonParser.cs" />
     <Compile Include="PSYC\PleaseShareYourCode.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -87,6 +107,16 @@
     </Compile>
     <Compile Include="PSYC\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PSYC\Settings.cs" />
+    <EmbeddedResource Include="PSYC\AutoCloseMessageBox.resx">
+      <DependentUpon>AutoCloseMessageBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PSYC\CombinedResultForm.resx">
+      <DependentUpon>CombinedResultForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PSYC\HelpForm.resx">
+      <DependentUpon>HelpForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="PSYC\PleaseShareYourCode.resx">
       <DependentUpon>PleaseShareYourCode.cs</DependentUpon>
     </EmbeddedResource>
@@ -100,8 +130,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="PleaseShareYouCode_TemporaryKey.pfx" />
-    <None Include="PleaseShareYourCode_TemporaryKey.pfx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
